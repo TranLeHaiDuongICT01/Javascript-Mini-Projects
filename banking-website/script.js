@@ -9,6 +9,7 @@ const btnCloseModal = document.querySelector('.btn--close-modal');
 const btnsOpenModal = document.querySelectorAll('.btn--show-modal');
 const btnScrollTo = document.querySelector('.btn--scroll-to')
 const section1 = document.getElementById('section--1')
+const section2 = document.getElementById('section--2');
 const image = document.querySelector('.header__img')
 let activeButton = document.querySelector('.operations__tab--active')
 let activeContent = document.querySelector('.operations__content--active')
@@ -17,6 +18,14 @@ const tabContainer = document.querySelector('.operations__tab-container')
 const tabContent = document.querySelectorAll('.operations__content')
 const navLinks = document.querySelectorAll('.nav__link')
 const nav = document.querySelector('.nav')
+const header = document.querySelector('.header')
+const allSection = document.querySelectorAll('.section')
+const imageLazy = document.querySelectorAll('img[data-src]')
+const slides = document.querySelectorAll('.slide')
+const btnLeft = document.querySelector('.slider__btn--left')
+const btnRight = document.querySelector('.slider__btn--right')
+const slider = document.querySelector('.slider')
+const dots = document.querySelector('.dots')
 
 const openModal = function (e) {
   e.preventDefault();
@@ -43,15 +52,6 @@ document.addEventListener('keydown', function (e) {
 });
 
 btnScrollTo.addEventListener('click', () => {
-  // const aScroll = document.createElement('a')
-  // aScroll.setAttribute('href', `#${section1.id}`)  
-  // aScroll.click()
-  // const s1coords = section1.getBoundingClientRect()
-  // window.scrollTo({
-  //   left: s1coords.left + window.pageXOffset,
-  //   top: s1coords.top + window.pageYOffset,
-  //   behavior: 'smooth'
-  // })
   section1.scrollIntoView({ behavior: 'smooth' })
 })
 
@@ -93,28 +93,130 @@ const setOpacity = function (e) {
   }
 }
 
+// const initialCoors = section1.getBoundingClientRect()
+// window.addEventListener('scroll', (e) => {
+//   if(window.scrollY > initialCoors.top) {
+//     nav.classList.add('sticky')
+//   } else nav.classList.remove('sticky')
+// })
+
+// const obCallback = function (entries, observer) {
+//   entries.forEach(en => {
+//     console.log(en);
+//   })
+// }
+
+// const observeOptions = {
+//   root: null,
+//   threshold: [0, 0.2]
+// }
+
+// const observer = new IntersectionObserver(obCallback, observeOptions)
+// observer.observe(section1)
+const navHeight = nav.getBoundingClientRect().height
+const stickNav = function (entries) {
+  const [entry] = entries
+  if (!entry.isIntersecting) {
+    nav.classList.add('sticky')
+  } else nav.classList.remove('sticky')
+}
+
+const headerObserver = new IntersectionObserver(
+  stickNav, {
+  root: null,
+  threshold: 0,
+  rootMargin: `-${navHeight}px`
+}
+)
+headerObserver.observe(header)
+
+
 nav.addEventListener('mousemove', setOpacity.bind(0.5))
 
 nav.addEventListener('mouseout', setOpacity.bind(1))
 
-// navLinks.forEach(function (nav) {
-//   nav.addEventListener('click', function (e) {
-//     e.preventDefault()
-//     const id = this.getAttribute('href')
-//     document.querySelector(id).scrollIntoView({ behavior: 'smooth' })
-//   })
-// })
 
-// const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+// Reveal sections
+const revealSection = (entries, observer) => {
+  const [entry] = entries
+  if (!entry.isIntersecting) return
+  entry.target.classList.remove('section--hidden')
+  observer.unobserve(entry.target)
+}
 
-// const randomColor = () => `rgba(${randomInt(0, 255)}, ${randomInt(0, 255)}, ${randomInt(0, 255)})`
+const sectionObserver = new IntersectionObserver(
+  revealSection, {
+  root: null,
+  threshold: 0.1
+}
+)
 
-// document.querySelector('.nav__link')
-//   .addEventListener('click', function () {
-//     this.style.backgroundColor = randomColor();
-//   })
+allSection.forEach(section => {
+  sectionObserver.observe(section)
+  // section.classList.add('section--hidden')
+})
 
-// document.querySelector('.nav__links')
-//   .addEventListener('click', function () {
-//     this.style.backgroundColor = randomColor();
-//   })
+
+// Lazy loading images
+const lazyLoad = (entries, observer) => {
+  const [entry] = entries
+  if (!entry.isIntersecting) return
+  console.log(entry);
+  entry.target.src = entry.target.dataset.src
+  entry.target.classList.remove('lazy-img')
+  entry.target.addEventListener('load', function () {
+
+  })
+  observer.unobserve(entry.target)
+}
+
+const imgObserver = new IntersectionObserver(
+  lazyLoad, {
+  root: null,
+  threshold: 0,
+  rootMargin: '-200px'
+}
+)
+
+imageLazy.forEach(image => {
+  imgObserver.observe(image)
+
+})
+
+
+
+// slider
+
+let currentSlide = 0
+slides.forEach((slide, i) => {
+  slide.style.transform = `translate(${i * 100}%)`
+})
+
+
+const prevSlide = () => {
+  currentSlide--;
+  if (currentSlide === -1) currentSlide = slides.length - 1
+  slides.forEach((slide, i) => {
+    slide.style.transform = `translate(${(i - currentSlide) * 100}%)`
+  })
+}
+
+const nextSlide = () => {
+  currentSlide++;
+  if (currentSlide === slides.length) currentSlide = 0
+  slides.forEach((slide, i) => {
+    slide.style.transform = `translate(${(i - currentSlide) * 100}%)`
+  })
+}
+
+btnRight.addEventListener('click', nextSlide)
+
+btnLeft.addEventListener('click', prevSlide)
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft')
+    prevSlide()
+  else if(e.key === 'ArrowRight') nextSlide()
+})
+
+
