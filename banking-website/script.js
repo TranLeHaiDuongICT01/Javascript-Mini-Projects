@@ -161,7 +161,6 @@ allSection.forEach(section => {
 const lazyLoad = (entries, observer) => {
   const [entry] = entries
   if (!entry.isIntersecting) return
-  console.log(entry);
   entry.target.src = entry.target.dataset.src
   entry.target.classList.remove('lazy-img')
   entry.target.addEventListener('load', function () {
@@ -187,23 +186,49 @@ imageLazy.forEach(image => {
 
 // slider
 
+const createDots = () => {
+  slides.forEach((_, i) => {
+    dots.insertAdjacentHTML('beforeend',
+      `<button class="dots__dot" data-slide="${i}"></button>`)
+  })
+}
+
+createDots()
+
+const activateDots = (i) => {
+  dots.childNodes[i].classList.add('dots__dot--active')
+}
+
+const deActivateDots = (i) => {
+  slides.forEach((slide, i) => {
+    slide.style.transition = '1s'
+  })
+  dots.childNodes[i].classList.remove('dots__dot--active')
+}
+
+
 let currentSlide = 0
+activateDots(currentSlide)
 slides.forEach((slide, i) => {
+  slide.style.transition = '0s'
   slide.style.transform = `translate(${i * 100}%)`
 })
 
-
 const prevSlide = () => {
+  deActivateDots(currentSlide)
   currentSlide--;
   if (currentSlide === -1) currentSlide = slides.length - 1
+  activateDots(currentSlide)
   slides.forEach((slide, i) => {
     slide.style.transform = `translate(${(i - currentSlide) * 100}%)`
   })
 }
 
 const nextSlide = () => {
+  deActivateDots(currentSlide)
   currentSlide++;
   if (currentSlide === slides.length) currentSlide = 0
+  activateDots(currentSlide)
   slides.forEach((slide, i) => {
     slide.style.transform = `translate(${(i - currentSlide) * 100}%)`
   })
@@ -216,7 +241,17 @@ btnLeft.addEventListener('click', prevSlide)
 document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft')
     prevSlide()
-  else if(e.key === 'ArrowRight') nextSlide()
+  else if (e.key === 'ArrowRight') nextSlide()
 })
 
-
+dots.addEventListener('click', (e) => {
+  if (e.target.classList.contains('dots__dot')) {
+    deActivateDots(currentSlide)
+    currentSlide = e.target.dataset.slide
+    activateDots(currentSlide)
+    e.target.classList.add('dots__dot--active')
+    slides.forEach((slide, i) => {
+      slide.style.transform = `translate(${(i - currentSlide) * 100}%)`
+    })
+  }
+})
